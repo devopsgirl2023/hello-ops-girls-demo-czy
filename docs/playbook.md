@@ -207,6 +207,11 @@ aws cloudformation validate-template --template-body file://cloudformation/stack
 
 部署（创建或更新）Stack：
 
+我用这条
+```shell
+aws cloudformation deploy --stack-name ${STACK_NAME} --template-file cloudformation/stack.yaml --parameter-overrides SecurityGroupName=devops-girls-2023 KeyName=devops-girls-2023 HostedZoneId=${HOSTED_ZONE_ID} DomainName=${DOMAIN_NAME} --capabilities CAPABILITY_NAMED_IAM --no-fail-on-empty-changeset
+```
+
 ```shell
 aws cloudformation deploy --stack-name devops-girls-<> --template-file cloudformation/stack.yaml --parameters SecurityGroupName=<> KeyName=<> HostedZoneId=<> DomainName=<> --capabilities CAPABILITY_NAMED_IAM --no-fail-on-empty-changeset --no-cli-pager
 ```
@@ -233,3 +238,29 @@ aws cloudformation delete-stack --stack-name devops-girls-<>
 ```
 
 Commit, voilà!
+
+stack.yaml添加
+```
+Record:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      TTL: "60"
+      ResourceRecords:
+        - !Ref EIP
+Outputs:
+  InstanceId:
+    Description: EC2 Instance Id
+    Value: !Ref Instance
+  PublicIP:
+    Description: EC2 Instance Public IP Address
+    Value: !Ref EIP
+  PrivateIP:
+    Description: EC2 Instance Private IP Address
+    Value: !GetAtt Instance.PrivateIp
+  DomainName:
+    Description: Fully Qualified Domain Name
+    Value: !Ref DomainName
+```
