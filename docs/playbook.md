@@ -49,6 +49,7 @@ git commit -m "Added somthing new"
 git push origin main
 ```
 ### Step 4: 在workflow中创建build job及test job
+参考coash repo的脚本
 完善CI流水线，添加build和test job。在CI中实现构建、推送镜像，并成功运行单元测试。build步骤参考：
 ```yaml
 jobs:
@@ -69,6 +70,9 @@ jobs:
 ```
 
 ## WorkShop Part2 - 应用AWS搭建网站
+AWS的登录方式：
+访问 https://tw-toc.signin.aws.amazon.com/console
+IAM user name 和 Password 框输入小纸条的内容
 ### step1: 手动创建 ec2 instance
 都是默认的 选择linux 2 ami(hvm)
 注意 security group （安全组）的选择
@@ -76,6 +80,11 @@ jobs:
 选择 devops girl 的 iam role
 ### step3: 登陆 ec2
 `ssh -i <pem> ec2-user@<public-ip>`
+
+实际
+`chmod 400 ./devops_girl.pem`                      
+[czy@czydembp Projects ]$ ssh -i ./devops_girl.pem ec2-user@13.250.112.152` 后面这个ip地址
+![Alt text](image.png)
 ### step4: 安装 docker
 1. 升级 yum `sudo yum update -y`
 2. 安装docker `sudo amazon-linux-extras install docker -y`
@@ -87,10 +96,14 @@ jobs:
 8.  重新连接 `ssh -i <pem> ec2-user@<public-ip>`
 8. 查看 docker `docker info`
 
+![Alt text](image-1.png)
+运行上面那个命令，再docker pull [复制的内容]
+![Alt text](image-2.png)
 ### step5: 登陆 ECR
 `aws ecr get-login-password --region {{ aws_region }} | docker login --username AWS --password-stdin {{ aws_account }}.dkr.ecr.{{ aws_region }}.amazonaws.com"`
-### step6: 拉取 docker image
+### step6: 拉取 docker image 镜像
 `docker pull {{ aws_account }}.dkr.ecr.{{ aws_region }}.amazonaws.com/devopsgirl2023/{{ ecr_repo }}:latest`
+其实`docker pull <uri>` 从AWS里面看
 ### step7: 启动 docker
 `docker run --name hello-ops-girl-app -d -p 8000:8000 {{ aws_account }}.dkr.ecr.{{ aws_region }}.amazonaws.com/devopsgirl2023/{{ ecr_repo }}:latest`
 ### step8: 安装 nginx
@@ -102,6 +115,7 @@ sudo systemctl start nginx
 ```
 ### step10: 访问网站
 由于此时还没有配置完成反向代理，那么这个时候只能看到 nginx 界面
+把8000的端口反向代理到80
 ### step11: 更新 nginx 配置文件
 1. 使用 vi 来编辑 nginx 配置文件 `sudo vi /etc/nginx/nginx.conf`
 2. 按 `i` 进入编辑模式
@@ -115,7 +129,7 @@ sudo systemctl start nginx
 ### step12: restart nginx
 `sudo systemctl restart nginx`
 ### step13: 再次访问网站
-
+![Alt text](image-3.png)
 ## WorkShop Part3 - 实践基础设施即代码
 
 在 `/cloudformation/stack.yaml` 查看现有代码。
